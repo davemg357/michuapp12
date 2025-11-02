@@ -3,8 +3,8 @@ name: Firebase Hosting Deploy
 on:
   push:
     branches:
-      - main         # deploy live when code is pushed to main
-  pull_request:     # preview deploy for PRs
+      - main
+  pull_request:
     branches:
       - main
 
@@ -13,21 +13,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout repo
       - uses: actions/checkout@v3
 
-      # 2️⃣ Install Flutter
+      # Install Flutter (new enough for Dart 3.8+)
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.13.0' # replace with your Flutter version
+          flutter-version: '3.27.3'  # 👈 use latest or your local version
 
-      # 3️⃣ Fetch dependencies
       - run: flutter pub get
-
-      # 4️⃣ Build Flutter web
       - run: flutter build web --release
 
-      # 5️⃣ Deploy to Firebase
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
