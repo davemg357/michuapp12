@@ -15,14 +15,18 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # Install Flutter (new enough for Dart 3.8+)
+      # 🧩 Install Flutter 3.35.7 (includes Dart 3.8.1)
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.27.3'  # 👈 use latest or your local version
+          flutter-version: '3.35.7'
 
+      # 🧱 Install dependencies
       - run: flutter pub get
+
+      # 🚀 Build the web app
       - run: flutter build web --release
 
+      # 🌍 Deploy to Firebase Hosting
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
