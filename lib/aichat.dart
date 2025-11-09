@@ -41,89 +41,103 @@ void showAIBottomSheet(BuildContext context) {
       final TextEditingController _controller = TextEditingController();
       final ScrollController scrollController = ScrollController();
 
-      return GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => Navigator.of(context).pop(),
-        child: StatefulBuilder(builder: (context, setState) {
-          final bool isDark = Theme.of(context).brightness == Brightness.dark;
+      return StatefulBuilder(builder: (context, setState) {
+        final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
-          void scrollToBottom() {
-            if (!scrollController.hasClients) return;
-            scrollController.animateTo(
-              scrollController.position.minScrollExtent,
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeOut,
-            );
+        void scrollToBottom() {
+          if (!scrollController.hasClients) return;
+          scrollController.animateTo(
+            scrollController.position.minScrollExtent,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+          );
+        }
+
+        void addMessage(Map<String, String> msg) {
+          setState(() => messages.add(msg));
+          persistentMessages = List.from(messages);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            scrollToBottom();
+          });
+        }
+
+        void updateLastMessage(Map<String, String> newMsg) {
+          setState(() {
+            if (messages.isNotEmpty &&
+                messages.last['role'] == 'assistant' &&
+                messages.last['content'] == 'typing') {
+              messages[messages.length - 1] = newMsg;
+            } else {
+              messages.add(newMsg);
+            }
+            persistentMessages = List.from(messages);
+          });
+        }
+
+        void updateQuickReplies(String lastResponse) {
+          List<String> newReplies = ["Tell me more", "What’s next?", "Thank you!"];
+          final responseLower = lastResponse.toLowerCase();
+
+          if (responseLower.contains("kiyya")) {
+            newReplies = [
+              "Who can apply for Michu Kiyya?",
+              "What are the loan limits?",
+              "Tell me about Michu Guyyaa"
+            ];
+          } else if (responseLower.contains("guyyaa")) {
+            newReplies = [
+              "What’s the interest rate?",
+              "Is collateral needed?",
+              "How fast is approval?"
+            ];
+          } else if (responseLower.contains("wabi")) {
+            newReplies = [
+              "What’s Michu Wabi?",
+              "Loan limits for Wabi?",
+              "How to apply for Wabi?"
+            ];
+          } else if (responseLower.contains("loan")) {
+            newReplies = [
+              "Can I repay early?",
+              "What if I miss a payment?",
+              "Show me all loan types"
+            ];
           }
 
-          void addMessage(Map<String, String> msg) {
-            setState(() => messages.add(msg));
-            persistentMessages = List.from(messages);
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              scrollToBottom();
+          setState(() => quickReplies = newReplies);
+        }
+
+        Future<void> sendUserMessage(String text) async {
+          if (text.trim().isEmpty) return;
+          FocusScope.of(context).unfocus();
+          _controller.clear();
+
+          addMessage({"role": "user", "content": text});
+          addMessage({"role": "assistant", "content": "typing"}); // typing placeholder
+
+          try {
+            final response = await sendAIMessage(text, messages);
+            updateLastMessage({"role": "assistant", "content": response});
+            updateQuickReplies(response);
+          } catch (e) {
+            updateLastMessage({
+              "role": "assistant",
+              "content": "Oops! Something went wrong. Try again."
             });
           }
+        }
 
-          void updateQuickReplies(String lastResponse) {
-            List<String> newReplies = ["Tell me more", "What’s next?", "Thank you!"];
-            final responseLower = lastResponse.toLowerCase();
+        // Initial welcome message
+        if (messages.isEmpty) {
+          const welcomeMsg = "Hi there! I’m Michu AI. How can I help you today?";
+          addMessage({"role": "assistant", "content": welcomeMsg});
+        }
 
-            if (responseLower.contains("kiyya")) {
-              newReplies = [
-                "Who can apply for Michu Kiyya?",
-                "What are the loan limits?",
-                "Tell me about Michu Guyyaa"
-              ];
-            } else if (responseLower.contains("guyyaa")) {
-              newReplies = [
-                "What’s the interest rate?",
-                "Is collateral needed?",
-                "How fast is approval?"
-              ];
-            } else if (responseLower.contains("wabi")) {
-              newReplies = [
-                "What’s Michu Wabi?",
-                "Loan limits for Wabi?",
-                "How to apply for Wabi?"
-              ];
-            } else if (responseLower.contains("loan")) {
-              newReplies = [
-                "Can I repay early?",
-                "What if I miss a payment?",
-                "Show me all loan types"
-              ];
-            }
-
-            setState(() => quickReplies = newReplies);
-          }
-
-          Future<void> sendUserMessage(String text) async {
-            if (text.trim().isEmpty) return;
-            FocusScope.of(context).unfocus();
-            _controller.clear();
-            addMessage({"role": "user", "content": text});
-
-            try {
-              final response = await sendAIMessage(text, messages);
-              addMessage({"role": "assistant", "content": response});
-              updateQuickReplies(response);
-            } catch (e) {
-              addMessage({
-                "role": "assistant",
-                "content": "Oops! Something went wrong. Try again."
-              });
-            }
-          }
-
-          // Initial welcome message
-          if (messages.isEmpty) {
-            const welcomeMsg =
-                "Hi there! I’m Michu AI. How can I help you today?";
-            addMessage({"role": "assistant", "content": welcomeMsg});
-          }
-
-          return GestureDetector(
-            onTap: () {},
+        return GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => Navigator.of(context).pop(), // close when tapped outside
+          child: GestureDetector(
+            onTap: () {}, // prevent closing when tapping inside
             child: DraggableScrollableSheet(
               initialChildSize: 0.75,
               maxChildSize: 0.95,
@@ -160,8 +174,15 @@ void showAIBottomSheet(BuildContext context) {
                             itemBuilder: (context, index) {
                               final msg = messages[messages.length - 1 - index];
                               final isUser = msg['role'] == 'user';
+                              final isTyping = msg['role'] == 'assistant' &&
+                                  msg['content'] == 'typing';
                               final animate =
                                   !(index == messages.length - 1 && !isUser);
+
+                              if (isTyping) {
+                                return TypingIndicator(isDark: isDark);
+                              }
+
                               return AnimatedMessage(
                                 isUser: isUser,
                                 content: msg['content']!,
@@ -180,8 +201,8 @@ void showAIBottomSheet(BuildContext context) {
                                   .map((text) => Padding(
                                         padding:
                                             const EdgeInsets.only(right: 8),
-                                        child: _quickButton(
-                                            context, text, sendUserMessage, isDark),
+                                        child: _quickButton(context, text,
+                                            sendUserMessage, isDark),
                                       ))
                                   .toList(),
                             ),
@@ -194,9 +215,11 @@ void showAIBottomSheet(BuildContext context) {
                               child: TextField(
                                 controller: _controller,
                                 style: TextStyle(
-                                    color: isDark ? Colors.white : Colors.black),
+                                    color:
+                                        isDark ? Colors.white : Colors.black),
                                 textInputAction: TextInputAction.send,
-                                onSubmitted: (value) => sendUserMessage(value),
+                                onSubmitted: (value) =>
+                                    sendUserMessage(value),
                                 decoration: InputDecoration(
                                   hintText: "Type a message...",
                                   hintStyle: TextStyle(
@@ -207,14 +230,16 @@ void showAIBottomSheet(BuildContext context) {
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   filled: true,
-                                  fillColor:
-                                      isDark ? Colors.grey[800] : Colors.grey[200],
+                                  fillColor: isDark
+                                      ? Colors.grey[800]
+                                      : Colors.grey[200],
                                 ),
                               ),
                             ),
                             IconButton(
                               icon: Icon(Icons.send,
-                                  color: isDark ? Colors.white : Colors.black),
+                                  color:
+                                      isDark ? Colors.white : Colors.black),
                               onPressed: () =>
                                   sendUserMessage(_controller.text),
                             ),
@@ -226,9 +251,9 @@ void showAIBottomSheet(BuildContext context) {
                 );
               },
             ),
-          );
-        }),
-      );
+          ),
+        );
+      });
     },
   );
 }
@@ -331,6 +356,79 @@ class _AnimatedMessageState extends State<AnimatedMessage>
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// -------------------- Typing Indicator Widget --------------------
+class TypingIndicator extends StatefulWidget {
+  final bool isDark;
+  const TypingIndicator({super.key, required this.isDark});
+
+  @override
+  State<TypingIndicator> createState() => _TypingIndicatorState();
+}
+
+class _TypingIndicatorState extends State<TypingIndicator>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller =
+        AnimationController(vsync: this, duration: const Duration(milliseconds: 1000))
+          ..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = widget.isDark;
+    final dotColor = isDark ? Colors.white : Colors.black;
+
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.grey[700] : Colors.grey[300],
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.smart_toy, size: 20),
+            const SizedBox(width: 6),
+            AnimatedBuilder(
+              animation: _controller,
+              builder: (context, child) {
+                int activeDot = ((DateTime.now().millisecondsSinceEpoch / 300)
+                            .floor() %
+                        3) +
+                    1;
+                return Row(
+                  children: List.generate(3, (i) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      child: Opacity(
+                        opacity: i < activeDot ? 1 : 0.3,
+                        child: CircleAvatar(radius: 3, backgroundColor: dotColor),
+                      ),
+                    );
+                  }),
+                );
+              },
+            ),
+          ],
         ),
       ),
     );

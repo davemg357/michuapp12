@@ -38,7 +38,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           final welcomeFont = 20 * scale;
           final michuFont = 40 * scale;
           final subFont = 14 * scale;
-          final buttonWidth = w * 0.25;
+          final buttonWidth = w * 0.3;
           final buttonHeight = h * 0.05;
           final circleSmall = w * 0.04;
           final circleMedium = w * 0.08;
