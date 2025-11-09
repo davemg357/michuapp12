@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:michuapp/aichat.dart';
 import 'package:michuapp/home.dart';
 
 class LoginPage extends StatefulWidget {
@@ -14,6 +15,13 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Theme-aware colors
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor = isDark ? const Color(0xFF0D0D0D) : Colors.white;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final hintColor = isDark ? Colors.white70 : Colors.black54;
+    final borderColor = isDark ? Colors.white54 : Colors.black38;
+
     // Get screen dimensions
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
@@ -27,10 +35,8 @@ class _LoginPageState extends State<LoginPage> {
     final buttonHeight = screenHeight * 0.05;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D0D),
-
+      backgroundColor: backgroundColor,
       resizeToAvoidBottomInset: true,
-
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -40,11 +46,10 @@ class _LoginPageState extends State<LoginPage> {
               vertical: verticalPadding,
             ),
             child: Form(
-              key: _formKey, // 👈 Form key for validation
+              key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Logo (Top Right)
                   Align(
                     alignment: Alignment.topRight,
                     child: Image.asset(
@@ -54,7 +59,6 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   SizedBox(height: screenHeight * 0.05),
 
-                  // Title
                   Text(
                     'Login',
                     style: TextStyle(
@@ -65,67 +69,56 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   SizedBox(height: screenHeight * 0.01),
 
-                  // Subtitle
                   Text(
                     'Please enter your password',
                     style: TextStyle(
-                      color: Colors.white70,
+                      color: hintColor,
                       fontSize: screenWidth * 0.04,
                     ),
                   ),
                   SizedBox(height: screenHeight * 0.05),
 
-                  // Mobile Number Field
                   TextField(
                     enabled: false,
                     decoration: InputDecoration(
-                      prefixIcon:
-                          const Icon(Icons.phone, color: Colors.white70),
+                      prefixIcon: Icon(Icons.phone, color: hintColor),
                       hintText: '+251 92577****7',
-                      hintStyle: const TextStyle(color: Colors.white70),
+                      hintStyle: TextStyle(color: hintColor),
                       filled: true,
                       fillColor: Colors.transparent,
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Colors.white54),
+                        borderSide: BorderSide(color: borderColor),
                       ),
                       disabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Colors.white54),
+                        borderSide: BorderSide(color: borderColor),
                       ),
                     ),
-                    style: const TextStyle(color: Colors.white),
+                    style: TextStyle(color: textColor),
                   ),
                   SizedBox(height: fieldSpacing),
 
-                  // Password Field with Validator
                   TextFormField(
                     controller: _passwordController,
                     obscureText: true,
-                    style: const TextStyle(color: Colors.white),
+                    style: TextStyle(color: textColor),
                     decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.vpn_key, color: Colors.white70),
-                      suffixIcon:
-                          const Icon(Icons.visibility, color: Colors.white70),
+                      prefixIcon: Icon(Icons.vpn_key, color: hintColor),
+                      suffixIcon: Icon(Icons.visibility, color: hintColor),
                       hintText: 'Password',
-                      hintStyle: const TextStyle(color: Colors.white70),
+                      hintStyle: TextStyle(color: hintColor),
                       filled: true,
                       fillColor: Colors.transparent,
-
-                      // Normal border
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Colors.white54),
+                        borderSide: BorderSide(color: borderColor),
                       ),
-
-                      // Focused border
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide:
                             const BorderSide(color: Color(0xFFFFA53E)),
                       ),
-
-                      // Error borders (red)
                       errorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide:
@@ -137,29 +130,26 @@ class _LoginPageState extends State<LoginPage> {
                             const BorderSide(color: Colors.red, width: 1.5),
                       ),
                     ),
-
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Password cannot be empty';
                       } else if (value.length < 8) {
                         return 'Password must be at least 8 characters long';
                       }
-                      return null; 
+                      return null;
                     },
                   ),
                   SizedBox(height: screenHeight * 0.01),
 
-                  // Password note
                   Text(
                     'Password must be 8 characters long',
                     style: TextStyle(
-                      color: Colors.white54,
+                      color: hintColor,
                       fontSize: screenWidth * 0.03,
                     ),
                   ),
                   SizedBox(height: fieldSpacing),
 
-                  // Forgot Password link
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
@@ -175,7 +165,6 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   SizedBox(height: screenHeight * 0.05),
 
-                  // Login Button
                   Center(
                     child: SizedBox(
                       width: buttonWidth,
@@ -213,6 +202,13 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
         ),
+      ),
+      floatingActionButton: FloatingActionButton(onPressed: (){
+
+      showAIBottomSheet(context);
+      },
+      backgroundColor: Colors.amber,
+      child: Icon(Icons.smart_toy,color: Colors.black,),
       ),
     );
   }

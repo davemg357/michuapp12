@@ -14,6 +14,7 @@ class _ProfileDrawerPageState extends State<ProfileDrawerPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
@@ -22,21 +23,22 @@ class _ProfileDrawerPageState extends State<ProfileDrawerPage> {
     final borderRadius = screenWidth * 0.05;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Column(
         children: [
+          // Header
           Container(
             height: screenHeight * 0.2,
-            color: const Color(0xFF33A6FF),
+            color: Colors.blue,
             child: Stack(
               children: [
                 Positioned(
                   top: screenHeight * 0.05,
                   left: screenWidth * 0.04,
                   child: CircleAvatar(
-                    backgroundColor: Colors.white,
+                    backgroundColor: theme.cardColor,
                     child: IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Color(0xFFFFA53E)),
+                      icon: Icon(Icons.arrow_back, color: theme.colorScheme.secondary),
                       onPressed: () {
                         Navigator.pop(context);
                       },
@@ -46,19 +48,28 @@ class _ProfileDrawerPageState extends State<ProfileDrawerPage> {
               ],
             ),
           ),
+
+          // Content
           Expanded(
             child: SingleChildScrollView(
               padding: EdgeInsets.symmetric(horizontal: cardPadding, vertical: cardPadding),
               child: Column(
                 children: [
-                  // Profile card
+                  // Profile Card
                   Container(
                     width: double.infinity,
                     height: profileHeight,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor.withOpacity(0.9),
+                      color: theme.cardColor,
                       borderRadius: BorderRadius.circular(borderRadius),
-                      border: Border.all(color: const Color(0xFFFFA53E), width: 1),
+                      border: Border.all(color: theme.colorScheme.secondary, width: 1),
+                      boxShadow: [
+                        BoxShadow(
+                          color: theme.shadowColor.withOpacity(0.1),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: Padding(
                       padding: EdgeInsets.all(screenWidth * 0.04),
@@ -67,17 +78,16 @@ class _ProfileDrawerPageState extends State<ProfileDrawerPage> {
                           Container(
                             width: screenWidth * 0.16,
                             height: screenWidth * 0.16,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFFFA53E),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.secondary,
                               shape: BoxShape.circle,
                             ),
                             alignment: Alignment.center,
                             child: Text(
                               "DG",
-                              style: TextStyle(
-                                color: Colors.black,
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                color: theme.colorScheme.onSecondary,
                                 fontWeight: FontWeight.bold,
-                                fontSize: screenWidth * 0.06,
                               ),
                             ),
                           ),
@@ -88,18 +98,15 @@ class _ProfileDrawerPageState extends State<ProfileDrawerPage> {
                             children: [
                               Text(
                                 "Dawit Megerssa Gedefa",
-                                style: TextStyle(
-                                  color: Colors.white,
+                                style: theme.textTheme.bodyLarge?.copyWith(
                                   fontWeight: FontWeight.w600,
-                                  fontSize: screenWidth * 0.045,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
                               Text(
                                 "+251 92 577 7387",
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: screenWidth * 0.035,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
                                 ),
                               ),
                             ],
@@ -108,31 +115,35 @@ class _ProfileDrawerPageState extends State<ProfileDrawerPage> {
                       ),
                     ),
                   ),
+
                   SizedBox(height: screenHeight * 0.03),
 
-                  // Settings items
-                  _buildSettingTile("Theme"),
-                  _buildSettingTile("Loan History"),
-                  _buildSettingTile("Bank Account"),
+                  // Settings Tiles
+                  _buildSettingTile(context, "Theme"),
+                  _buildSettingTile(context, "Loan History"),
+                  _buildSettingTile(context, "Bank Account"),
+
                   SizedBox(height: screenHeight * 0.03),
 
                   // Language Section
                   Container(
                     width: double.infinity,
                     padding: EdgeInsets.symmetric(
-                        vertical: screenHeight * 0.015, horizontal: screenWidth * 0.04),
+                      vertical: screenHeight * 0.015,
+                      horizontal: screenWidth * 0.04,
+                    ),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor.withOpacity(0.9),
+                      color: theme.cardColor,
                       borderRadius: BorderRadius.circular(borderRadius),
-                      border: Border.all(color: const Color(0xFFFFA53E), width: 1),
+                      border: Border.all(color: theme.colorScheme.secondary, width: 1),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildLanguageOption("English"),
-                        _buildLanguageOption("አማርኛ"),
-                        _buildLanguageOption("Afaan Oromoo"),
-                        _buildLanguageOption("ትግርኛ"),
+                        _buildLanguageOption(context, "English"),
+                        _buildLanguageOption(context, "አማርኛ"),
+                        _buildLanguageOption(context, "Afaan Oromoo"),
+                        _buildLanguageOption(context, "ትግርኛ"),
                       ],
                     ),
                   ),
@@ -145,7 +156,9 @@ class _ProfileDrawerPageState extends State<ProfileDrawerPage> {
     );
   }
 
-  Widget _buildSettingTile(String title) {
+  Widget _buildSettingTile(BuildContext context, String title) {
+    final theme = Theme.of(context);
+
     return InkWell(
       onTap: () {
         if (title == "Theme") _showThemeDialog();
@@ -154,23 +167,25 @@ class _ProfileDrawerPageState extends State<ProfileDrawerPage> {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
         decoration: BoxDecoration(
-          color: const Color(0xFF1A1A1A),
+          color: theme.cardColor,
           borderRadius: BorderRadius.circular(30),
-          border: Border.all(color: const Color(0xFFFFA53E), width: 0.8),
+          border: Border.all(color: theme.colorScheme.secondary, width: 0.8),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(title, style: const TextStyle(color: Colors.white, fontSize: 16)),
-            const Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 16),
+            Text(title, style: theme.textTheme.bodyLarge),
+            Icon(Icons.arrow_forward_ios, color: theme.iconTheme.color?.withOpacity(0.7), size: 16),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildLanguageOption(String lang) {
+  Widget _buildLanguageOption(BuildContext context, String lang) {
+    final theme = Theme.of(context);
     final isSelected = _selectedLanguage == lang;
+
     return InkWell(
       onTap: () {
         setState(() {
@@ -182,11 +197,11 @@ class _ProfileDrawerPageState extends State<ProfileDrawerPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(lang, style: const TextStyle(color: Colors.white, fontSize: 16)),
+            Text(lang, style: theme.textTheme.bodyLarge),
             Checkbox(
               value: isSelected,
-              activeColor: const Color(0xFF33A6FF),
-              checkColor: Colors.white,
+              activeColor: theme.primaryColor,
+              checkColor: theme.colorScheme.onPrimary,
               onChanged: (value) {
                 setState(() {
                   _selectedLanguage = lang;
@@ -206,8 +221,10 @@ class _ProfileDrawerPageState extends State<ProfileDrawerPage> {
     showDialog(
       context: context,
       builder: (context) {
+        final theme = Theme.of(context);
         return AlertDialog(
-          title: const Text('Select Theme'),
+          backgroundColor: theme.dialogBackgroundColor,
+          title: Text('Select Theme', style: theme.textTheme.titleMedium),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [

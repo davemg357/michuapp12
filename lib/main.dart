@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:michuapp/login.dart';
 import 'package:michuapp/themeprovider.dart';
+import 'package:michuapp/welcomepage.dart';
 import 'package:provider/provider.dart';
 
 void main() {
@@ -29,7 +30,7 @@ class Main extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       themeMode: themeProvider.themeMode,
-      home: LoginPage(),
+      home: WelcomeScreen(),
     );
   }
 }
